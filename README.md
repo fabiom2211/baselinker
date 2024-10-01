@@ -15,12 +15,18 @@ To access the project in your browser using `baselinker.localhost`, follow the s
 
 1. Open the `hosts` file:
    - **Linux / Mac**: 
-     - sudo vi /etc/hosts   
+     ```shell
+     sudo vi /etc/hosts
+     ```
    - **Windows**: Open **Notepad** as administrator and edit the file at
-     - `C:\Windows\System32\drivers\etc\hosts`
+     ```shell
+     C:\Windows\System32\drivers\etc\hosts
+     ```
 
 2. Add the following line at the end of the file:
-    - 127.0.0.1 baselinker.localhost
+    ```shell
+    127.0.0.1 baselinker.localhost
+    ```
 
 ### Step 2: Cloning the Repository
 

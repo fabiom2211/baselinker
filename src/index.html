@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tech task Baselinker</title>
+</head>
+
+<body>
+<main>
+    <form id="shippingForm" onsubmit="submitForm(event)">
+        <!-- Campos de envio do remetente e destinatário -->
+        <fieldset>
+            <legend>Sender Information</legend>
+            <label for="sender_name">Sender Name:</label>
+            <input type="text" id="sender_name" name="sender_name" value="Jan Janssen" required>
+            <br><br>
+
+            <label for="sender_company">Sender Company:</label>
+            <input type="text" id="sender_company" name="sender_company" value="Webshop JAN" required>
+        </fieldset>
+
+        <fieldset>
+            <legend>Recipient Information</legend>
+            <label for="recipient_name">Recipient Name:</label>
+            <input type="text" id="recipient_name" name="recipient_name" value="John Doe" required>
+            <br><br>
+
+            <label for="recipient_company">Recipient Company:</label>
+            <input type="text" id="recipient_company" name="recipient_company" value="">
+            <br><br>
+
+            <label for="recipient_addressLine1">Recipient Address Line 1:</label>
+            <input type="text" id="recipient_addressLine1" name="recipient_addressLine1" value="20 W 34th St" required>
+            <br><br>
+
+            <label for="recipient_city">Recipient City:</label>
+            <input type="text" id="recipient_city" name="recipient_city" value="New York" required>
+            <br><br>
+
+            <label for="recipient_country">Recipient Country (2 letter ISO code):</label>
+            <select id="recipient_country" name="recipient_country" required>
+                <option value="">Select Country</option>
+                <option value="US" selected>United States</option>
+                <option value="CA">Canada</option>
+                <option value="AU">Australia</option>
+            </select>
+            <br><br>
+
+            <label for="recipient_state">Recipient State:</label>
+            <input type="text" id="recipient_state" name="recipient_state" value="NY" pattern="^[A-Z]{2,3}$" title="Enter a valid 2 or 3 letter ISO code">
+            <br><br>
+
+            <label for="recipient_zip">Recipient Zip:</label>
+            <input type="text" id="recipient_zip" name="recipient_zip" value="10001" pattern="\d{5}(-\d{4})?" title="Enter a valid Zip code (e.g. 10001 or 10001-1234)">
+            <br><br>
+
+            <label for="recipient_phone">Recipient Phone:</label>
+            <input type="tel" id="recipient_phone" name="recipient_phone" value="+1-123-456-7890" required>
+            <br><br>
+
+            <label for="recipient_email">Recipient Email:</label>
+            <input type="email" id="recipient_email" name="recipient_email" value="john@doe.com" required>
+            <br><br>
+        </fieldset>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="result"></div>
+    <button id="downloadLabel" style="display: none;" onclick="downloadLabel()">Downloading a label</button>
+</main>
+
+<script>
+    let trackingNumber = '';
+
+    async function submitForm(event) {
+        event.preventDefault();
+        const form = document.getElementById("shippingForm");
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('process_form.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                document.getElementById("result").innerHTML = `<p style="color: green;">${result.message}</p>`;
+                trackingNumber = result.trackingNumber; // Armazena o número de rastreamento
+                document.getElementById("downloadLabel").style.display = 'block'; // Mostra o botão de download
+            } else {
+                let errorsHtml = '<ul style="color: red;">';
+                for (const [field, error] of Object.entries(result.errors)) {
+                    errorsHtml += `<li>${error}</li>`;
+                }
+                errorsHtml += '</ul>';
+                document.getElementById("result").innerHTML = errorsHtml;
+            }
+        } catch (error) {
+            document.getElementById("result").innerHTML = `<p style="color: red;">Error submitting form: ${error}</p>`;
+        }
+    }
+
+    async function downloadLabel() {
+        if (trackingNumber) {
+            try {
+                const response = await fetch(`process_form.php?trackingNumber=${trackingNumber}`, {
+                    method: 'GET',
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Cria um link temporário para download do arquivo
+                    const link = document.createElement('a');
+                    link.href = `data:application/pdf;base64,${result.label}`;
+                    link.download = 'shipping_label.pdf';
+                    link.click();
+                } else {
+                    document.getElementById("result").innerHTML = `<p style="color: red;">${result.errors.message}</p>`;
+                }
+            } catch (error) {
+                document.getElementById("result").innerHTML = `<p style="color: red;">Error downloading label: ${error}</p>`;
+            }
+        }
+    }
+</script>
+</body>
+
+</html>

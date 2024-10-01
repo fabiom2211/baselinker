@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  php:
+    image: php:8.2-fpm
+    container_name: baselinker_php
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - baselinker_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: baselinker_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./src:/var/www/html
+    networks:
+      - baselinker_network
+
+networks:
+  baselinker_network:
+    driver: bridge
